@@ -19,21 +19,21 @@
     "slash_commands": [
       {
         "command": "/add-task",
-        "url": "https://REPLACE_WITH_YOUR_DEPLOYMENT.vercel.app/api/slack",
+        "url": "https://ops-todo-slack-app.vercel.app/api/slack",
         "description": "Add a task to the ops list",
         "usage_hint": "[task description]",
         "should_escape": false
       },
       {
         "command": "/next-task",
-        "url": "https://REPLACE_WITH_YOUR_DEPLOYMENT.vercel.app/api/slack",
+        "url": "https://ops-todo-slack-app.vercel.app/api/slack",
         "description": "See your next task, or unassigned tasks up for grabs",
         "usage_hint": "[any]",
         "should_escape": false
       },
       {
         "command": "/all-tasks",
-        "url": "https://REPLACE_WITH_YOUR_DEPLOYMENT.vercel.app/api/slack",
+        "url": "https://ops-todo-slack-app.vercel.app/api/slack",
         "description": "Show the full sorted task list",
         "should_escape": false
       }
@@ -54,7 +54,7 @@
   "settings": {
     "interactivity": {
       "is_enabled": true,
-      "request_url": "https://REPLACE_WITH_YOUR_DEPLOYMENT.vercel.app/api/slack"
+      "request_url": "https://ops-todo-slack-app.vercel.app/api/slack"
     },
     "org_deploy_enabled": false,
     "socket_mode_enabled": false,

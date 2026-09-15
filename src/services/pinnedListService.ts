@@ -16,7 +16,7 @@ export async function refreshPinnedList(client: WebClient): Promise<void> {
   const blocks = buildTaskListBlocks(tasks);
 
   const { data: state } = await supabase
-    .from('app_state')
+    .from('ops_app_state')
     .select('*')
     .eq('key', PINNED_LIST_KEY)
     .maybeSingle();
@@ -45,7 +45,7 @@ export async function refreshPinnedList(client: WebClient): Promise<void> {
 
   if (posted.ts) {
     await client.pins.add({ channel: opsChannelId, timestamp: posted.ts });
-    await supabase.from('app_state').upsert({
+    await supabase.from('ops_app_state').upsert({
       key: PINNED_LIST_KEY,
       channel_id: opsChannelId,
       message_ts: posted.ts,

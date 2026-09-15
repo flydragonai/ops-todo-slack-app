@@ -68,7 +68,7 @@ function sortTasks(tasks: Task[]): Task[] {
 
 export async function createTask(input: CreateTaskInput): Promise<Task> {
   const { data, error } = await supabase
-    .from('tasks')
+    .from('ops_tasks')
     .insert({
       title: input.title,
       description: input.description ?? null,
@@ -91,13 +91,13 @@ export async function createTask(input: CreateTaskInput): Promise<Task> {
 }
 
 export async function getActiveTasks(): Promise<Task[]> {
-  const { data, error } = await supabase.from('tasks').select('*').neq('status', 'archived');
+  const { data, error } = await supabase.from('ops_tasks').select('*').neq('status', 'archived');
   if (error) throw error;
   return sortTasks((data ?? []) as Task[]);
 }
 
 export async function getTaskById(id: string): Promise<Task | null> {
-  const { data, error } = await supabase.from('tasks').select('*').eq('id', id).maybeSingle();
+  const { data, error } = await supabase.from('ops_tasks').select('*').eq('id', id).maybeSingle();
   if (error) throw error;
   return (data as Task | null) ?? null;
 }
@@ -110,7 +110,7 @@ export async function updateTask(id: string, updates: UpdateTaskInput): Promise<
     patch.completed_at = null;
   }
 
-  const { data, error } = await supabase.from('tasks').update(patch).eq('id', id).select().single();
+  const { data, error } = await supabase.from('ops_tasks').update(patch).eq('id', id).select().single();
   if (error) throw error;
   return data as Task;
 }

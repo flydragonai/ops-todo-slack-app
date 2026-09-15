@@ -1,6 +1,7 @@
 create extension if not exists pgcrypto;
 
-create table tasks (
+-- Prefixed with ops_ to avoid colliding with an existing `tasks` table in a shared database.
+create table ops_tasks (
   id                    uuid primary key default gen_random_uuid(),
   title                 text not null,
   description           text,
@@ -26,12 +27,12 @@ create table tasks (
   completed_at          timestamptz
 );
 
-create index idx_tasks_status   on tasks(status);
-create index idx_tasks_priority on tasks(priority);
-create index idx_tasks_assignee on tasks(assignee_user_id);
+create index idx_ops_tasks_status   on ops_tasks(status);
+create index idx_ops_tasks_priority on ops_tasks(priority);
+create index idx_ops_tasks_assignee on ops_tasks(assignee_user_id);
 
 -- tracks the single pinned "live list" message so it can be updated in place
-create table app_state (
+create table ops_app_state (
   key         text primary key,   -- 'pinned_list'
   channel_id  text,
   message_ts  text,

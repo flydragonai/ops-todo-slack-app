@@ -1,0 +1,63 @@
+{
+  "display_information": {
+    "name": "Ops Task List",
+    "description": "Track and prioritize team tasks without leaving Slack"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "ops-task-list",
+      "always_online": true
+    },
+    "shortcuts": [
+      {
+        "name": "Create task from this message",
+        "type": "message",
+        "callback_id": "create_task_from_message",
+        "description": "Add this message (and its thread) to the ops task list"
+      }
+    ],
+    "slash_commands": [
+      {
+        "command": "/add-task",
+        "url": "https://REPLACE_WITH_YOUR_DEPLOYMENT.vercel.app/api/slack",
+        "description": "Add a task to the ops list",
+        "usage_hint": "[task description]",
+        "should_escape": false
+      },
+      {
+        "command": "/next-task",
+        "url": "https://REPLACE_WITH_YOUR_DEPLOYMENT.vercel.app/api/slack",
+        "description": "See your next task, or unassigned tasks up for grabs",
+        "usage_hint": "[any]",
+        "should_escape": false
+      },
+      {
+        "command": "/all-tasks",
+        "url": "https://REPLACE_WITH_YOUR_DEPLOYMENT.vercel.app/api/slack",
+        "description": "Show the full sorted task list",
+        "should_escape": false
+      }
+    ]
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "commands",
+        "chat:write",
+        "chat:write.public",
+        "pins:write",
+        "pins:read",
+        "channels:read"
+      ]
+    }
+  },
+  "settings": {
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "https://REPLACE_WITH_YOUR_DEPLOYMENT.vercel.app/api/slack"
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}

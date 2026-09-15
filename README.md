@@ -5,7 +5,7 @@ A native to-do list for the team, built as a Slack app.
 Built by [FlyDragon](https://www.goflydragon.com/).
 
 - `/add-task <description>` — add a task from any channel (typed into the main compose box; Slack does not allow slash commands inside a thread reply box).
-- **"Create task from this message"** — a message shortcut (on the `···` menu of any message, including thread replies) that opens a modal to create a task linked to that exact thread/message.
+- **"Add task from message"** — a message shortcut (on the `···` menu of any message, including thread replies) that opens a modal to create a task linked to that exact thread/message.
 - `/next-task` — your top-priority assigned task, or if you have none, a list of unassigned tasks up for grabs. `/next-task any` shows the single top-priority task workspace-wide.
 - `/all-tasks` — the full sorted task list, delivered privately wherever you type it.
 - A pinned, always-current message in **#ops-requests** shows the full list grouped by priority, with an "Edit" button per task (priority, status, assignee, due date) that anyone on the team can use.

@@ -10,7 +10,7 @@
     },
     "shortcuts": [
       {
-        "name": "Create task from this message",
+        "name": "Add task from message",
         "type": "message",
         "callback_id": "create_task_from_message",
         "description": "Add this message (and its thread) to the ops task list"

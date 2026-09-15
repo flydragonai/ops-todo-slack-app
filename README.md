@@ -2,7 +2,7 @@
 
 A native to-do list for the team, built as a Slack app.
 
-Built by [Fly Dragon](https://www.goflydragon.com/).
+Built by [FlyDragon](https://www.goflydragon.com/).
 
 - `/add-task <description>` — add a task from any channel (typed into the main compose box; Slack does not allow slash commands inside a thread reply box).
 - **"Create task from this message"** — a message shortcut (on the `···` menu of any message, including thread replies) that opens a modal to create a task linked to that exact thread/message.

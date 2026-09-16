@@ -1,11 +1,11 @@
 import type { KnownBlock } from '@slack/types';
 import type { Task } from '../services/taskService';
 import { ACTION_IDS, DONE_SECTION_LIMIT, PRIORITIES, PRIORITY_LABEL, STATUS_ICON } from '../lib/constants';
-import { escapeMrkdwn } from '../lib/slackFormat';
+import { escapeMrkdwn, toSingleLine } from '../lib/slackFormat';
 
 export function formatTaskLine(task: Task): string {
   const icon = STATUS_ICON[task.status];
-  const safeTitle = escapeMrkdwn(task.title);
+  const safeTitle = escapeMrkdwn(toSingleLine(task.title));
   const titleText = task.source_permalink
     ? `<${task.source_permalink}|${safeTitle}>`
     : `*${safeTitle}*`;

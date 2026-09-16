@@ -1,5 +1,5 @@
 import type { App } from '@slack/bolt';
-import { escapeMrkdwn } from '../lib/slackFormat';
+import { escapeMrkdwn, toSingleLine } from '../lib/slackFormat';
 import { refreshPinnedList } from '../services/pinnedListService';
 import { createTask } from '../services/taskService';
 
@@ -7,7 +7,7 @@ export function registerAddTask(app: App): void {
   app.command('/add-task', async ({ ack, respond, command, client }) => {
     await ack();
 
-    const title = command.text?.trim();
+    const title = toSingleLine(command.text ?? '');
     if (!title) {
       await respond({ response_type: 'ephemeral', text: 'Usage: `/add-task <description>`' });
       return;

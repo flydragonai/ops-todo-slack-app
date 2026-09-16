@@ -115,6 +115,11 @@ export async function updateTask(id: string, updates: UpdateTaskInput): Promise<
   return data as Task;
 }
 
+export async function deleteTask(id: string): Promise<void> {
+  const { error } = await supabase.from('ops_tasks').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export function getAssignedOpenTasks(tasks: Task[], userId: string): Task[] {
   return tasks.filter(
     (t) => t.assignee_user_id === userId && (t.status === 'open' || t.status === 'in_progress'),

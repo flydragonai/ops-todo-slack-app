@@ -1,12 +1,14 @@
 import type { KnownBlock } from '@slack/types';
 import type { Task } from '../services/taskService';
 import { ACTION_IDS, DONE_SECTION_LIMIT, PRIORITIES, PRIORITY_LABEL, STATUS_ICON } from '../lib/constants';
+import { escapeMrkdwn } from '../lib/slackFormat';
 
 export function formatTaskLine(task: Task): string {
   const icon = STATUS_ICON[task.status];
+  const safeTitle = escapeMrkdwn(task.title);
   const titleText = task.source_permalink
-    ? `<${task.source_permalink}|${task.title}>`
-    : `*${task.title}*`;
+    ? `<${task.source_permalink}|${safeTitle}>`
+    : `*${safeTitle}*`;
   const assignee = task.assignee_user_id ? `<@${task.assignee_user_id}>` : '_Unassigned_';
   const due = task.due_date ? ` · Due ${task.due_date}` : '';
   return `${icon} ${titleText}\n${assignee}${due}`;

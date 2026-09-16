@@ -60,7 +60,7 @@ export function buildTaskFormBlocks(options: {
           text: { type: 'plain_text', text: `${STATUS_ICON[status]} ${STATUS_LABEL[status]}` },
           value: status,
         },
-        options: STATUSES.map((s) => ({
+        options: STATUSES.filter((s) => s !== 'archived').map((s) => ({
           text: { type: 'plain_text', text: `${STATUS_ICON[s]} ${STATUS_LABEL[s]}` },
           value: s,
         })),

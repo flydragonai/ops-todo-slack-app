@@ -1,4 +1,5 @@
 import type { App } from '@slack/bolt';
+import { escapeMrkdwn } from '../lib/slackFormat';
 import { refreshPinnedList } from '../services/pinnedListService';
 import { createTask } from '../services/taskService';
 
@@ -23,7 +24,7 @@ export function registerAddTask(app: App): void {
 
     await respond({
       response_type: 'ephemeral',
-      text: `✅ Task added: *${title}* — see the full list in <#${process.env.OPS_CHANNEL_ID}>`,
+      text: `✅ Task added: *${escapeMrkdwn(title)}* — see the full list in <#${process.env.OPS_CHANNEL_ID}>`,
     });
   });
 }

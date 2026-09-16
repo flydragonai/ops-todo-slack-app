@@ -29,6 +29,7 @@ export const ACTION_IDS = {
   EDIT_TASK: 'edit_task',
   ADD_TASK_MODAL_SUBMIT: 'add_task_modal_submit',
   EDIT_TASK_MODAL_SUBMIT: 'edit_task_modal_submit',
+  DELETE_TASK_BUTTON: 'delete_task_button',
   NEXT_TASK_START: 'next_task_start',
   NEXT_TASK_DONE: 'next_task_done',
 } as const;

@@ -1,6 +1,6 @@
 import type { InputBlock } from '@slack/types';
 import type { Priority, Status } from '../lib/constants';
-import { PRIORITIES, PRIORITY_LABEL, STATUS_ICON, STATUSES } from '../lib/constants';
+import { PRIORITIES, PRIORITY_LABEL, STATUS_ICON, STATUS_LABEL, STATUSES } from '../lib/constants';
 
 export interface TaskFormDefaults {
   title?: string;
@@ -57,11 +57,11 @@ export function buildTaskFormBlocks(options: {
         type: 'static_select',
         action_id: 'status_input',
         initial_option: {
-          text: { type: 'plain_text', text: `${STATUS_ICON[status]} ${status}` },
+          text: { type: 'plain_text', text: `${STATUS_ICON[status]} ${STATUS_LABEL[status]}` },
           value: status,
         },
-        options: STATUSES.filter((s) => s !== 'archived').map((s) => ({
-          text: { type: 'plain_text', text: `${STATUS_ICON[s]} ${s}` },
+        options: STATUSES.map((s) => ({
+          text: { type: 'plain_text', text: `${STATUS_ICON[s]} ${STATUS_LABEL[s]}` },
           value: s,
         })),
       },

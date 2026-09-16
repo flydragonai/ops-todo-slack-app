@@ -15,7 +15,14 @@ export const STATUS_ICON: Record<Status, string> = {
   open: '⬜',
   in_progress: '🔵',
   done: '✅',
-  archived: '⬛',
+  archived: '🗑️',
+};
+
+export const STATUS_LABEL: Record<Status, string> = {
+  open: 'Open',
+  in_progress: 'In Progress',
+  done: 'Done',
+  archived: 'Archived (delete)',
 };
 
 export const ACTION_IDS = {

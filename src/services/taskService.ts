@@ -131,7 +131,8 @@ export async function createTask(client: WebClient, input: CreateTaskInput): Pro
       priority_locked: !!input.priority && input.priority !== 'normal',
       category: 'account',
       source: 'slack',
-      owner_team_id: team_id,
+      // New tickets land in Unassigned unless a person was picked; the client's team is only used then.
+      owner_team_id: ownerStaffId ? team_id : null,
       owner_staff_id: ownerStaffId,
       due_date: input.due_date ?? null,
       tags: ['slack'],

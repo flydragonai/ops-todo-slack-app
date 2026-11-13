@@ -54,6 +54,9 @@
         "users:read",
         "users:read.email",
         "groups:read"
+      ],
+      "user": [
+        "chat:write"
       ]
     }
   },

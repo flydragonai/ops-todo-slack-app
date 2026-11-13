@@ -63,6 +63,7 @@ export function registerTicketReaction(app: App): void {
 
     const { task, created } = await createTask(client, {
       title: message.text,
+      autoTitle: true,
       description: message.text,
       source_channel_id: channel,
       source_message_ts: ts,

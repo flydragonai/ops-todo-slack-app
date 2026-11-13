@@ -5,6 +5,7 @@ import { supabase } from './supabaseClient';
 import { ensureStaff } from './staffService';
 import { ACTIVE_STATUSES, DONE_SECTION_LIMIT, type Priority, type Status } from '../lib/constants';
 import { plainSlackText, toSingleLine, userName } from '../lib/slackFormat';
+import { allClients, cleanTicket, formatTitle } from './titler';
 
 export interface Task {
   id: string; // cs_tickets.ticket_id as a string (Slack action values are strings)
@@ -22,6 +23,8 @@ export interface Task {
 export interface CreateTaskInput {
   title: string;
   description?: string;
+  /** Title is raw message text: let Sonnet write a clean title + summary. */
+  autoTitle?: boolean;
   source_channel_id: string;
   source_message_ts?: string;
   source_thread_ts?: string;
@@ -72,15 +75,16 @@ function sortTasks(tasks: Task[]): Task[] {
 }
 
 /** Client referenced by a 6-digit client ID in the text (e.g. "100186"), plus its team. */
-async function inferClient(text: string): Promise<{ client_id: number | null; team_id: number | null }> {
+/** Client by 6-digit id in the text (fast path, no model call). */
+function clientIdInText(text: string): number | null {
   const m = text.match(/\b(1\d{5})\b/);
-  if (!m) return { client_id: null, team_id: null };
-  const { data: c } = await supabase.from('clients').select('client_id, team_assignment').eq('client_id', Number(m[1])).maybeSingle();
-  if (!c) return { client_id: null, team_id: null };
-  const { data: t } = c.team_assignment
-    ? await supabase.from('teams').select('team_id').eq('name', c.team_assignment).maybeSingle()
-    : { data: null };
-  return { client_id: c.client_id, team_id: t?.team_id ?? null };
+  return m ? Number(m[1]) : null;
+}
+
+async function teamFor(clientTeam: string | null | undefined): Promise<number | null> {
+  if (!clientTeam) return null;
+  const { data } = await supabase.from('teams').select('team_id').eq('name', clientTeam).maybeSingle();
+  return data?.team_id ?? null;
 }
 
 /**
@@ -94,15 +98,33 @@ export async function createTask(client: WebClient, input: CreateTaskInput): Pro
   }
 
   // Mentions/links → readable text (@Name, #channel), so the hub never shows raw <@U…> codes.
-  const title = toSingleLine(await plainSlackText(client, input.title)).slice(0, 150);
+  let title = toSingleLine(await plainSlackText(client, input.title));
   const body = (await plainSlackText(client, input.description?.trim() || input.title)).trim();
-  const { client_id, team_id } = await inferClient(`${title} ${body}`);
+
+  // Raw Slack messages (🎫) get a Sonnet-written title + details and a client match by name/domain.
+  const clients = await allClients();
+  const idInText = clientIdInText(`${title} ${body}`);
+  let match = clients.find((c) => c.client_id === idInText) ?? null;
+  let summary = '';
+  if (input.autoTitle) {
+    const clean = await cleanTicket(body);
+    if (clean) {
+      match ??= clean.client;
+      title = clean.title;
+      summary = clean.summary;
+    }
+  }
+  // Always lead with client id + name when we know the client (unless the title already has the id).
+  title = match && !title.includes(String(match.client_id)) ? formatTitle(title, match) : title.slice(0, 150);
+  const client_id = match?.client_id ?? null;
+  const team_id = await teamFor(match?.team_assignment);
   const ownerStaffId = input.assignee_user_id ? await ensureStaff(client, input.assignee_user_id) : null;
 
   const { data, error } = await supabase
     .from('cs_tickets')
     .insert({
       title,
+      summary,
       client_id,
       status: ownerStaffId ? 'open' : 'new',
       priority: input.priority ?? 'normal',

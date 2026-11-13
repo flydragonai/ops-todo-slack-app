@@ -4,6 +4,7 @@ import type { WebClient } from '@slack/web-api';
 import { supabase } from './supabaseClient';
 import { ensureStaff } from './staffService';
 import { ACTIVE_STATUSES, DONE_SECTION_LIMIT, type Priority, type Status } from '../lib/constants';
+import { plainSlackText, toSingleLine, userName } from '../lib/slackFormat';
 
 export interface Task {
   id: string; // cs_tickets.ticket_id as a string (Slack action values are strings)
@@ -92,14 +93,16 @@ export async function createTask(client: WebClient, input: CreateTaskInput): Pro
     if (existing) return { task: existing, created: false };
   }
 
-  const body = input.description?.trim() || input.title;
-  const { client_id, team_id } = await inferClient(`${input.title} ${body}`);
+  // Mentions/links → readable text (@Name, #channel), so the hub never shows raw <@U…> codes.
+  const title = toSingleLine(await plainSlackText(client, input.title)).slice(0, 150);
+  const body = (await plainSlackText(client, input.description?.trim() || input.title)).trim();
+  const { client_id, team_id } = await inferClient(`${title} ${body}`);
   const ownerStaffId = input.assignee_user_id ? await ensureStaff(client, input.assignee_user_id) : null;
 
   const { data, error } = await supabase
     .from('cs_tickets')
     .insert({
-      title: input.title.slice(0, 200),
+      title,
       client_id,
       status: ownerStaffId ? 'open' : 'new',
       priority: input.priority ?? 'normal',
@@ -129,7 +132,7 @@ export async function createTask(client: WebClient, input: CreateTaskInput): Pro
 
   const author = input.source_author_user_id ?? input.requester_user_id;
   const { error: msgError } = await supabase.from('cs_messages').insert({
-    ticket_id: task.number, direction: 'in', channel: 'slack', author: `<@${author}>`, body,
+    ticket_id: task.number, direction: 'in', channel: 'slack', author: `@${await userName(client, author)}`, body,
     external_id: input.source_message_ts ?? null,
   });
   if (msgError && msgError.code !== '23505') throw msgError;

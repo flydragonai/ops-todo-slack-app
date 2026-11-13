@@ -1,7 +1,6 @@
 import type { App } from '@slack/bolt';
 import { WebClient } from '@slack/web-api';
 import { TICKET_REACTION } from '../lib/constants';
-import { toSingleLine } from '../lib/slackFormat';
 import { refreshPinnedList } from '../services/pinnedListService';
 import { createTask } from '../services/taskService';
 import { ticketCreatedText } from '../lib/hubLink';
@@ -63,7 +62,7 @@ export function registerTicketReaction(app: App): void {
     try { permalink = (await reader.chat.getPermalink({ channel, message_ts: ts })).permalink } catch { /* best effort */ }
 
     const { task, created } = await createTask(client, {
-      title: toSingleLine(message.text).slice(0, 150),
+      title: message.text,
       description: message.text,
       source_channel_id: channel,
       source_message_ts: ts,

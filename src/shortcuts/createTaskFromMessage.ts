@@ -1,6 +1,6 @@
 import type { App } from '@slack/bolt';
 import { CREATE_TASK_SHORTCUT_CALLBACK_ID } from '../lib/constants';
-import { toSingleLine } from '../lib/slackFormat';
+import { plainSlackText, toSingleLine } from '../lib/slackFormat';
 import { buildAddTaskModal, type AddTaskMetadata } from '../views/addTaskModal';
 
 export function registerCreateTaskShortcut(app: App): void {
@@ -19,7 +19,7 @@ export function registerCreateTaskShortcut(app: App): void {
       message_text: (message.text ?? '').slice(0, 2500),
     };
 
-    const suggestedTitle = toSingleLine(message.text ?? '').slice(0, 150);
+    const suggestedTitle = toSingleLine(await plainSlackText(client, message.text ?? '')).slice(0, 150);
 
     await client.views.open({
       trigger_id: shortcut.trigger_id,

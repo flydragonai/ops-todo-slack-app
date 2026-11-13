@@ -40,6 +40,7 @@
     ]
   },
   "oauth_config": {
+    "redirect_urls": ["https://ops-todo-slack-app.vercel.app/api/slack-oauth"],
     "scopes": {
       "bot": [
         "commands",

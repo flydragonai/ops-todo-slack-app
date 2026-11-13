@@ -5,11 +5,12 @@ import { toSingleLine } from '../lib/slackFormat';
 import { refreshPinnedList } from '../services/pinnedListService';
 import { createTask } from '../services/taskService';
 import { ticketCreatedText } from '../lib/hubLink';
+import { userClients } from '../services/userTokens';
 
 type Msg = { text?: string; user?: string; thread_ts?: string; ts?: string };
 
-/** User token (xoxp) of the person who authorized the app: reads messages the bot can't see. */
-const userClient = process.env.SLACK_USER_TOKEN ? new WebClient(process.env.SLACK_USER_TOKEN) : null;
+/** Errors meaning "the bot can't see this conversation" — fall back to connected people's tokens. */
+const CANT_SEE = ['not_in_channel', 'channel_not_found', 'missing_scope'];
 
 /** Finds one message by ts, whether it's top-level or a reply inside a thread. */
 async function readMessage(c: WebClient, channel: string, ts: string): Promise<Msg | undefined> {
@@ -40,11 +41,18 @@ export function registerTicketReaction(app: App): void {
       message = await readMessage(client, channel, ts);
     } catch (err) {
       const code = (err as { data?: { error?: string } }).data?.error;
-      if (!userClient || !['not_in_channel', 'channel_not_found', 'missing_scope'].includes(code ?? '')) throw err;
+      if (!CANT_SEE.includes(code ?? '')) throw err;
     }
-    if (!message && userClient) {
-      reader = userClient;
-      message = await readMessage(userClient, channel, ts);
+    // The bot can't see it: try each connected person's token, the reactor's first.
+    if (!message) {
+      for (const uc of await userClients(event.user)) {
+        try {
+          message = await readMessage(uc, channel, ts);
+        } catch (err) {
+          logger.debug(`ticket reaction: user token can't read ${channel}: ${(err as { data?: { error?: string } }).data?.error ?? err}`);
+        }
+        if (message) { reader = uc; break; }
+      }
     }
     if (!message?.text) {
       logger.warn(`ticket reaction: could not read message ${channel}/${ts}`);

@@ -4,6 +4,7 @@ import { ACTION_IDS } from '../lib/constants';
 import { refreshPinnedList } from '../services/pinnedListService';
 import { createTask } from '../services/taskService';
 import { buildTaskFormBlocks, parseTaskFormValues } from '../blocks/taskModalBlocks';
+import { ticketCreatedText } from '../lib/hubLink';
 
 export interface AddTaskMetadata {
   channel_id: string;
@@ -11,6 +12,7 @@ export interface AddTaskMetadata {
   thread_ts?: string;
   requester: string;
   source_author?: string;
+  message_text?: string;
 }
 
 export function buildAddTaskModal(metadata: AddTaskMetadata, defaults: { title?: string } = {}): View {
@@ -18,7 +20,7 @@ export function buildAddTaskModal(metadata: AddTaskMetadata, defaults: { title?:
     type: 'modal',
     callback_id: ACTION_IDS.ADD_TASK_MODAL_SUBMIT,
     private_metadata: JSON.stringify(metadata),
-    title: { type: 'plain_text', text: 'Create Task' },
+    title: { type: 'plain_text', text: 'Create Ticket' },
     submit: { type: 'plain_text', text: 'Create' },
     close: { type: 'plain_text', text: 'Cancel' },
     blocks: buildTaskFormBlocks({ includeStatus: false, defaults }),
@@ -45,8 +47,9 @@ export function registerAddTaskModalSubmit(app: App): void {
       }
     }
 
-    await createTask({
+    const { task, created } = await createTask(client, {
       title: values.title,
+      description: meta.message_text,
       priority: values.priority,
       assignee_user_id: values.assignee_user_id ?? undefined,
       due_date: values.due_date ?? undefined,
@@ -56,7 +59,6 @@ export function registerAddTaskModalSubmit(app: App): void {
       source_permalink: permalink,
       source_author_user_id: meta.source_author,
       requester_user_id: body.user.id,
-      created_via: meta.message_ts ? 'message_shortcut' : 'manual',
     });
 
     await refreshPinnedList(client);
@@ -66,7 +68,7 @@ export function registerAddTaskModalSubmit(app: App): void {
         await client.chat.postMessage({
           channel: meta.channel_id,
           thread_ts: meta.thread_ts ?? meta.message_ts,
-          text: `✅ Task created — see <#${process.env.OPS_CHANNEL_ID}> for the full list.`,
+          text: created ? ticketCreatedText(task) : `🎫 This message is already ticket #${task.number}.`,
         });
       } catch {
         // best effort — bot may not be a member of this channel

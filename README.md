@@ -1,14 +1,19 @@
-# Ops Task List — Slack App
+# CS Hub — Slack App
 
-A native to-do list for the team, built as a Slack app.
+Turns Slack messages into **CS Hub tickets** (the `cs_*` tables in the FlyDragon Supabase project; the hub web app lives in `../fd-cs-todo`). Originally the Ops Task List app (renamed to CS Hub; same Slack app and token); its old `ops_tasks` were imported as tickets by `fd-cs-todo/supabase/migrations/20261113180100_cs_import_ops_tasks.sql` and the table is no longer written to.
 
 Built by [FlyDragon](https://www.goflydragon.com/).
 
-- `/add-task <description>` — add a task from any channel (typed into the main compose box; Slack does not allow slash commands inside a thread reply box).
-- **"Add task from message"** — a message shortcut (on the `···` menu of any message, including thread replies) that opens a modal to create a task linked to that exact thread/message.
-- `/next-task` — your top-priority assigned task, or if you have none, a list of unassigned tasks up for grabs. `/next-task any` shows the single top-priority task workspace-wide.
-- `/all-tasks` — the full sorted task list, delivered privately wherever you type it.
-- A pinned, always-current message in **#ops-requests** shows the full list grouped by priority, with an "Edit" button per task (priority, status, assignee, due date) that anyone on the team can use.
+- **🎫 reaction** on any message (top-level or in a thread) creates a ticket and replies in the thread with its number. One ticket per message, so repeat reactions are ignored. The bot must be in the channel.
+- **"Create ticket"**: a message shortcut (on the `···` menu) that opens a modal to set title, priority, owner and due date before creating the ticket.
+- `/add-task <description>` creates a ticket from any channel.
+- `/next-task` — your top-priority ticket, or unassigned ones up for grabs. `/next-task any` shows the top ticket workspace-wide.
+- `/all-tasks` — all open tickets, privately.
+- A pinned, always-current message in **#ops-requests** lists open tickets by priority with an **Edit** button (priority, status, owner, due date). "Close ticket" closes rather than deletes.
+
+A 6-digit client ID in the message (e.g. `100186`) links the ticket to that client and its team. Slack users become `cs_staff` rows the first time they create, own or edit a ticket.
+
+Set `HUB_URL` to make ticket numbers link to the hub.
 
 ## Setup
 
@@ -26,7 +31,7 @@ Deploy to Vercel first (step 3) so you know your app's URL, then:
 4. Copy from the app's settings:
    - **OAuth & Permissions** → Bot User OAuth Token (`SLACK_BOT_TOKEN`, starts `xoxb-`)
    - **Basic Information** → Signing Secret (`SLACK_SIGNING_SECRET`)
-5. Invite the bot to `#ops-requests` (`/invite @ops-task-list`) — required for it to pin the live list there.
+5. Invite the bot to `#ops-requests` (`/invite @cs-hub`) — required for it to pin the live list there — and to the knowledge channel the hub reads (`#ai_ryan`).
 
 ### 3. Deploy
 

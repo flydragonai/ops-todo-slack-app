@@ -15,7 +15,7 @@ export function buildTaskFormBlocks(options: {
   defaults?: TaskFormDefaults;
 }): InputBlock[] {
   const { includeStatus, defaults = {} } = options;
-  const priority = defaults.priority ?? 'medium';
+  const priority = defaults.priority ?? 'normal';
   const status = defaults.status ?? 'open';
 
   const blocks: InputBlock[] = [
@@ -60,7 +60,7 @@ export function buildTaskFormBlocks(options: {
           text: { type: 'plain_text', text: `${STATUS_ICON[status]} ${STATUS_LABEL[status]}` },
           value: status,
         },
-        options: STATUSES.filter((s) => s !== 'archived').map((s) => ({
+        options: STATUSES.filter((s) => s !== 'closed').map((s) => ({
           text: { type: 'plain_text', text: `${STATUS_ICON[s]} ${STATUS_LABEL[s]}` },
           value: s,
         })),

@@ -1,6 +1,7 @@
 import type { KnownBlock } from '@slack/types';
 import type { Task } from '../services/taskService';
-import { ACTION_IDS, DONE_SECTION_LIMIT, PRIORITIES, PRIORITY_LABEL, STATUS_ICON } from '../lib/constants';
+import { ACTION_IDS, DONE_SECTION_LIMIT, PRIORITIES, PRIORITY_LABEL, STATUS_ICON, isActive } from '../lib/constants';
+import { hubTicketUrl } from '../lib/hubLink';
 import { escapeMrkdwn, toSingleLine } from '../lib/slackFormat';
 
 export function formatTaskLine(task: Task): string {
@@ -9,9 +10,12 @@ export function formatTaskLine(task: Task): string {
   const titleText = task.source_permalink
     ? `<${task.source_permalink}|${safeTitle}>`
     : `*${safeTitle}*`;
+  const url = hubTicketUrl(task);
+  const num = url ? `<${url}|#${task.number}>` : `#${task.number}`;
   const assignee = task.assignee_user_id ? `<@${task.assignee_user_id}>` : '_Unassigned_';
+  const clientName = task.client_name ? ` · ${escapeMrkdwn(task.client_name)}` : '';
   const due = task.due_date ? ` · Due ${task.due_date}` : '';
-  return `${icon} ${titleText}\n${assignee}${due}`;
+  return `${icon} ${num} ${titleText}\n${assignee}${clientName}${due}`;
 }
 
 function taskSectionBlock(task: Task): KnownBlock {
@@ -31,7 +35,7 @@ export function buildTaskListBlocks(tasks: Task[], options: { headerText?: strin
   const blocks: KnownBlock[] = [
     {
       type: 'header',
-      text: { type: 'plain_text', text: options.headerText ?? '📋 Ops Task List', emoji: true },
+      text: { type: 'plain_text', text: options.headerText ?? '🎫 Open Tickets', emoji: true },
     },
     {
       type: 'context',
@@ -39,12 +43,12 @@ export function buildTaskListBlocks(tasks: Task[], options: { headerText?: strin
     },
   ];
 
-  const active = tasks.filter((t) => t.status === 'open' || t.status === 'in_progress');
-  const done = tasks.filter((t) => t.status === 'done');
+  const active = tasks.filter((t) => isActive(t.status));
+  const done = tasks.filter((t) => t.status === 'resolved');
 
   if (active.length === 0) {
     blocks.push({ type: 'divider' });
-    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '_No open tasks 🎉_' } });
+    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '_No open tickets 🎉_' } });
   }
 
   for (const priority of PRIORITIES) {
@@ -60,7 +64,7 @@ export function buildTaskListBlocks(tasks: Task[], options: { headerText?: strin
 
   if (done.length > 0) {
     blocks.push({ type: 'divider' });
-    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*✅ Recently Done*' } });
+    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*✅ Recently Resolved*' } });
     for (const task of done.slice(0, DONE_SECTION_LIMIT)) {
       blocks.push(taskSectionBlock(task));
     }
@@ -68,7 +72,7 @@ export function buildTaskListBlocks(tasks: Task[], options: { headerText?: strin
       blocks.push({
         type: 'context',
         elements: [
-          { type: 'mrkdwn', text: `_+${done.length - DONE_SECTION_LIMIT} more done — see Supabase for full history_` },
+          { type: 'mrkdwn', text: `_+${done.length - DONE_SECTION_LIMIT} more resolved — see the CS Hub for full history_` },
         ],
       });
     }

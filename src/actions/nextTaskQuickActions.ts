@@ -9,11 +9,11 @@ export function registerNextTaskQuickActions(app: App): void {
     const taskId = body.actions[0]?.value;
     if (!taskId) return;
 
-    await updateTask(taskId, { status: 'in_progress' });
+    await updateTask(client, taskId, { status: 'open' }, body.user.id);
     await refreshPinnedList(client);
     await respond({
       replace_original: true,
-      text: '▶️ Marked in progress. Run `/next-task` again for your next one.',
+      text: '▶️ Marked open. Run `/next-task` again for your next one.',
     });
   });
 
@@ -22,11 +22,11 @@ export function registerNextTaskQuickActions(app: App): void {
     const taskId = body.actions[0]?.value;
     if (!taskId) return;
 
-    await updateTask(taskId, { status: 'done' });
+    await updateTask(client, taskId, { status: 'resolved' }, body.user.id);
     await refreshPinnedList(client);
     await respond({
       replace_original: true,
-      text: '✅ Nice work! Run `/next-task` again for your next one.',
+      text: '✅ Resolved — nice work! Run `/next-task` again for your next one.',
     });
   });
 }

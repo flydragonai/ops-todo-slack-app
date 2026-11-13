@@ -16,6 +16,7 @@ export function registerCreateTaskShortcut(app: App): void {
       thread_ts: (message as { thread_ts?: string }).thread_ts ?? message.ts,
       requester: shortcut.user.id,
       source_author: message.user,
+      message_text: (message.text ?? '').slice(0, 2500),
     };
 
     const suggestedTitle = toSingleLine(message.text ?? '').slice(0, 150);

@@ -13,18 +13,17 @@ export function registerAddTask(app: App): void {
       return;
     }
 
-    await createTask({
+    const { task } = await createTask(client, {
       title,
       source_channel_id: command.channel_id,
       requester_user_id: command.user_id,
-      created_via: 'slash_command',
     });
 
     await refreshPinnedList(client);
 
     await respond({
       response_type: 'ephemeral',
-      text: `✅ Task added: *${escapeMrkdwn(title)}* — see the full list in <#${process.env.OPS_CHANNEL_ID}>`,
+      text: `🎫 Ticket #${task.number} added: *${escapeMrkdwn(title)}* — see the full list in <#${process.env.OPS_CHANNEL_ID}>`,
     });
   });
 }

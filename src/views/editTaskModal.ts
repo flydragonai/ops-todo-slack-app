@@ -28,14 +28,14 @@ export function buildEditTaskModal(task: Task): View {
       elements: [
         {
           type: 'button',
-          text: { type: 'plain_text', text: '🗑️ Delete Task' },
+          text: { type: 'plain_text', text: '🗑️ Close ticket' },
           style: 'danger',
           action_id: ACTION_IDS.DELETE_TASK_BUTTON,
           value: task.id,
           confirm: {
-            title: { type: 'plain_text', text: 'Delete this task?' },
-            text: { type: 'mrkdwn', text: `This permanently deletes *${escapeMrkdwn(task.title)}*. This can't be undone.` },
-            confirm: { type: 'plain_text', text: 'Delete' },
+            title: { type: 'plain_text', text: 'Close this ticket?' },
+            text: { type: 'mrkdwn', text: `Closes *#${task.number} ${escapeMrkdwn(task.title)}*. Its history stays in the CS Hub.` },
+            confirm: { type: 'plain_text', text: 'Close' },
             deny: { type: 'plain_text', text: 'Cancel' },
             style: 'danger',
           },
@@ -48,7 +48,7 @@ export function buildEditTaskModal(task: Task): View {
     type: 'modal',
     callback_id: ACTION_IDS.EDIT_TASK_MODAL_SUBMIT,
     private_metadata: JSON.stringify({ taskId: task.id } satisfies EditTaskMetadata),
-    title: { type: 'plain_text', text: 'Edit Task' },
+    title: { type: 'plain_text', text: `Edit #${task.number}` },
     submit: { type: 'plain_text', text: 'Save' },
     close: { type: 'plain_text', text: 'Cancel' },
     blocks,
@@ -56,19 +56,19 @@ export function buildEditTaskModal(task: Task): View {
 }
 
 export function registerEditTaskModalSubmit(app: App): void {
-  app.view(ACTION_IDS.EDIT_TASK_MODAL_SUBMIT, async ({ ack, view, client }) => {
+  app.view(ACTION_IDS.EDIT_TASK_MODAL_SUBMIT, async ({ ack, view, body, client }) => {
     await ack();
 
     const meta = JSON.parse(view.private_metadata || '{}') as EditTaskMetadata;
     const values = parseTaskFormValues(view.state.values);
 
-    await updateTask(meta.taskId, {
+    await updateTask(client, meta.taskId, {
       title: values.title,
       priority: values.priority,
       status: values.status,
       assignee_user_id: values.assignee_user_id,
       due_date: values.due_date,
-    });
+    }, body.user.id);
 
     await refreshPinnedList(client);
   });

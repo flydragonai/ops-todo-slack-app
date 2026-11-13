@@ -1,40 +1,40 @@
 {
   "display_information": {
-    "name": "Ops Task List",
-    "description": "Track and prioritize team tasks without leaving Slack"
+    "name": "CS Hub",
+    "description": "Turn Slack messages into CS Hub tickets and track them"
   },
   "features": {
     "bot_user": {
-      "display_name": "ops-task-list",
+      "display_name": "cs-hub",
       "always_online": true
     },
     "shortcuts": [
       {
-        "name": "Add task from message",
+        "name": "Create ticket",
         "type": "message",
         "callback_id": "create_task_from_message",
-        "description": "Add this message (and its thread) to the ops task list"
+        "description": "Create a CS Hub ticket from this message (and its thread)"
       }
     ],
     "slash_commands": [
       {
         "command": "/add-task",
         "url": "https://ops-todo-slack-app.vercel.app/api/slack",
-        "description": "Add a task to the ops list",
-        "usage_hint": "[task description]",
+        "description": "Create a ticket",
+        "usage_hint": "[ticket description]",
         "should_escape": false
       },
       {
         "command": "/next-task",
         "url": "https://ops-todo-slack-app.vercel.app/api/slack",
-        "description": "See your next task, or unassigned tasks up for grabs",
+        "description": "Your next ticket, or unassigned ones up for grabs",
         "usage_hint": "[any]",
         "should_escape": false
       },
       {
         "command": "/all-tasks",
         "url": "https://ops-todo-slack-app.vercel.app/api/slack",
-        "description": "Show the full sorted task list",
+        "description": "Show all open tickets",
         "should_escape": false
       }
     ]
@@ -47,7 +47,13 @@
         "chat:write.public",
         "pins:write",
         "pins:read",
-        "channels:read"
+        "channels:read",
+        "reactions:read",
+        "channels:history",
+        "groups:history",
+        "users:read",
+        "users:read.email",
+        "groups:read"
       ]
     }
   },
@@ -58,6 +64,12 @@
     },
     "org_deploy_enabled": false,
     "socket_mode_enabled": false,
-    "token_rotation_enabled": false
+    "token_rotation_enabled": false,
+    "event_subscriptions": {
+      "request_url": "https://ops-todo-slack-app.vercel.app/api/slack",
+      "bot_events": [
+        "reaction_added"
+      ]
+    }
   }
 }

@@ -10,11 +10,11 @@ import {
   type Task,
 } from '../services/taskService';
 
-const NO_TASKS_MESSAGE = "🎉 No open tasks — you're all caught up.";
+const NO_TASKS_MESSAGE = "🎉 No open tickets — you're all caught up.";
 
 function buildSingleTaskBlocks(task: Task): KnownBlock[] {
   return [
-    { type: 'section', text: { type: 'mrkdwn', text: `*Your next task:*\n${formatTaskLine(task)}` } },
+    { type: 'section', text: { type: 'mrkdwn', text: `*Your next ticket:*\n${formatTaskLine(task)}` } },
     {
       type: 'actions',
       elements: [
@@ -26,7 +26,7 @@ function buildSingleTaskBlocks(task: Task): KnownBlock[] {
         },
         {
           type: 'button',
-          text: { type: 'plain_text', text: 'Mark Done' },
+          text: { type: 'plain_text', text: 'Resolve' },
           style: 'primary',
           action_id: ACTION_IDS.NEXT_TASK_DONE,
           value: task.id,

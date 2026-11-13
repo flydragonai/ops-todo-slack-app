@@ -9,6 +9,7 @@ import { registerDeleteTaskButton } from './actions/deleteTaskButton';
 import { registerNextTaskQuickActions } from './actions/nextTaskQuickActions';
 import { registerAddTaskModalSubmit } from './views/addTaskModal';
 import { registerEditTaskModalSubmit } from './views/editTaskModal';
+import { registerTicketReaction } from './events/ticketReaction';
 
 export const receiver = new VercelReceiver();
 
@@ -27,3 +28,4 @@ registerDeleteTaskButton(app);
 registerNextTaskQuickActions(app);
 registerAddTaskModalSubmit(app);
 registerEditTaskModalSubmit(app);
+registerTicketReaction(app);

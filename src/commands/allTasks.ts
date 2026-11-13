@@ -7,7 +7,7 @@ export function registerAllTasks(app: App): void {
     await ack();
 
     const tasks = await getActiveTasks();
-    const blocks = buildTaskListBlocks(tasks, { headerText: '📋 All Tasks' });
+    const blocks = buildTaskListBlocks(tasks, { headerText: '🎫 All Open Tickets' });
 
     await respond({ response_type: 'ephemeral', blocks, text: 'All tasks' });
   });

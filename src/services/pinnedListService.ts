@@ -27,7 +27,7 @@ export async function refreshPinnedList(client: WebClient): Promise<void> {
         channel: opsChannelId,
         ts: state.message_ts,
         blocks,
-        text: 'Ops Task List',
+        text: 'Open tickets',
       });
       return;
     } catch (err) {
@@ -40,7 +40,7 @@ export async function refreshPinnedList(client: WebClient): Promise<void> {
   const posted = await client.chat.postMessage({
     channel: opsChannelId,
     blocks,
-    text: 'Ops Task List',
+    text: 'Open tickets',
   });
 
   if (posted.ts) {

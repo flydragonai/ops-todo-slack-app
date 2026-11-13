@@ -28,6 +28,7 @@ const Schema = z.object({
 
 const SYSTEM = `You turn a Slack message into a customer-success ticket for FlyDragon (a marketing agency for real-estate clients).
 Return the client it is about (only from the provided list, matched by 6-digit client id, client/agent name, or domain), a short title, and a short summary of the details.
+The team often shortens a client id to its last digits when it is clearly naming a client: "69" or "69's site" means 100069, "186" means 100186 (a 6-digit id starting with 1000xx/100xxx). Use that mapping when the number refers to a client or their site/domain, not when it is a quantity, price or date.
 Be literal: don't invent facts that are not in the message.`;
 
 export interface CleanTicket { client: ClientRef | null; title: string; summary: string }

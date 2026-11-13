@@ -53,10 +53,16 @@
         "groups:history",
         "users:read",
         "users:read.email",
-        "groups:read"
+        "groups:read",
+        "im:write"
       ],
       "user": [
-        "chat:write"
+        "chat:write",
+        "reactions:read",
+        "channels:history",
+        "groups:history",
+        "im:history",
+        "mpim:history"
       ]
     }
   },
@@ -71,6 +77,9 @@
     "event_subscriptions": {
       "request_url": "https://ops-todo-slack-app.vercel.app/api/slack",
       "bot_events": [
+        "reaction_added"
+      ],
+      "user_events": [
         "reaction_added"
       ]
     }

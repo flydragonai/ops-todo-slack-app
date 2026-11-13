@@ -1,27 +1,50 @@
 import type { App } from '@slack/bolt';
+import { WebClient } from '@slack/web-api';
 import { TICKET_REACTION } from '../lib/constants';
 import { toSingleLine } from '../lib/slackFormat';
 import { refreshPinnedList } from '../services/pinnedListService';
 import { createTask } from '../services/taskService';
 import { ticketCreatedText } from '../lib/hubLink';
 
+type Msg = { text?: string; user?: string; thread_ts?: string; ts?: string };
+
+/** User token (xoxp) of the person who authorized the app: reads messages the bot can't see. */
+const userClient = process.env.SLACK_USER_TOKEN ? new WebClient(process.env.SLACK_USER_TOKEN) : null;
+
+/** Finds one message by ts, whether it's top-level or a reply inside a thread. */
+async function readMessage(c: WebClient, channel: string, ts: string): Promise<Msg | undefined> {
+  const hist = await c.conversations.history({ channel, latest: ts, oldest: ts, inclusive: true, limit: 1 });
+  const top = hist.messages?.find((m) => m.ts === ts);
+  if (top) return top;
+  // A thread reply: replies() always returns the parent first, then replies within [oldest, latest].
+  const rep = await c.conversations.replies({ channel, ts, latest: ts, oldest: ts, inclusive: true, limit: 2 });
+  return rep.messages?.find((m) => m.ts === ts);
+}
+
 /**
- * 🎫 reaction on any message → ticket. Needs the reaction_added event plus reactions:read and
- * channels:history (groups:history for private channels). The bot must be in the channel.
- * Idempotent: one ticket per Slack message, so repeat reactions or Slack retries are no-ops.
+ * 🎫 (:ticket:) reaction on any message → ticket.
+ * - Bot event: fires in channels the bot is in.
+ * - User event (reaction_added under user_events): fires anywhere the authorizing user can see,
+ *   including private channels and DMs; the message is then read with SLACK_USER_TOKEN.
+ * Idempotent: one ticket per Slack message, so duplicate events (bot + user), repeat reactions
+ * and Slack retries are no-ops.
  */
 export function registerTicketReaction(app: App): void {
   app.event('reaction_added', async ({ event, client, logger }) => {
     if (event.reaction !== TICKET_REACTION || event.item.type !== 'message') return;
     const { channel, ts } = event.item;
 
-    // Top-level messages come back from history; thread replies only from replies.
-    let message: { text?: string; user?: string; thread_ts?: string; ts?: string } | undefined;
-    const hist = await client.conversations.history({ channel, latest: ts, inclusive: true, limit: 1 });
-    message = hist.messages?.find((m) => m.ts === ts);
-    if (!message) {
-      const rep = await client.conversations.replies({ channel, ts, limit: 1, inclusive: true, latest: ts });
-      message = rep.messages?.find((m) => m.ts === ts);
+    let message: Msg | undefined;
+    let reader: WebClient = client;
+    try {
+      message = await readMessage(client, channel, ts);
+    } catch (err) {
+      const code = (err as { data?: { error?: string } }).data?.error;
+      if (!userClient || !['not_in_channel', 'channel_not_found', 'missing_scope'].includes(code ?? '')) throw err;
+    }
+    if (!message && userClient) {
+      reader = userClient;
+      message = await readMessage(userClient, channel, ts);
     }
     if (!message?.text) {
       logger.warn(`ticket reaction: could not read message ${channel}/${ts}`);
@@ -29,7 +52,7 @@ export function registerTicketReaction(app: App): void {
     }
 
     let permalink: string | undefined;
-    try { permalink = (await client.chat.getPermalink({ channel, message_ts: ts })).permalink } catch { /* best effort */ }
+    try { permalink = (await reader.chat.getPermalink({ channel, message_ts: ts })).permalink } catch { /* best effort */ }
 
     const { task, created } = await createTask(client, {
       title: toSingleLine(message.text).slice(0, 150),
@@ -44,8 +67,17 @@ export function registerTicketReaction(app: App): void {
     if (!created) return;
 
     await refreshPinnedList(client);
+    // Confirm in the thread when the bot can post there (member, or public channel via
+    // chat:write.public); otherwise DM the person who reacted.
     try {
       await client.chat.postMessage({ channel, thread_ts: message.thread_ts ?? ts, text: ticketCreatedText(task) });
-    } catch { /* best effort */ }
+    } catch {
+      try {
+        const dm = await client.conversations.open({ users: event.user });
+        if (dm.channel?.id) {
+          await client.chat.postMessage({ channel: dm.channel.id, text: `${ticketCreatedText(task)}${permalink ? `\nFrom: ${permalink}` : ''}` });
+        }
+      } catch { /* best effort */ }
+    }
   });
 }
